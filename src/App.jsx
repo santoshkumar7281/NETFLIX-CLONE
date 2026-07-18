@@ -4,6 +4,7 @@ import Login from './pages/Login/Login'
 import { Routes, Route } from 'react-router-dom'
 import Player from './pages/Player/Player'
 import Movies from './pages/Movies/Movies'
+import Songs from './songs/Songs'
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
         <Route path='/movies'     element={<Movies />} />
         <Route path='/tvshows'    element={<Movies />} />
         <Route path='/newpopular' element={<Movies />} />
+        <Route path='/songs'      element={<Songs />} />
       </Routes>
     </div>
   )

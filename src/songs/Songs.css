@@ -1,0 +1,298 @@
+.song {
+  position: relative;
+  overflow: hidden;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 32px 24px;
+  background: #121212;
+  color: #f5f5f5;
+  border-radius: 20px;
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ───────────────────── Animated background blobs ───────────────────── */
+.song-bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 320px;
+  height: 320px;
+  top: -80px;
+  left: -80px;
+  background: #ff512f;
+  animation: floatBlob 12s ease-in-out infinite;
+}
+
+.blob-2 {
+  width: 280px;
+  height: 280px;
+  bottom: -60px;
+  right: -60px;
+  background: #dd2476;
+  animation: floatBlob 14s ease-in-out infinite reverse;
+}
+
+.blob-3 {
+  width: 220px;
+  height: 220px;
+  top: 40%;
+  left: 60%;
+  background: #7b2ff7;
+  animation: floatBlob 10s ease-in-out infinite;
+}
+
+@keyframes floatBlob {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(30px, -40px) scale(1.15); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Everything else sits above the blobs */
+.song h1,
+.search-bar,
+.song-status,
+.son,
+.modal-backdrop {
+  position: relative;
+  z-index: 1;
+}
+
+.song h1 {
+  font-size: 2.2rem;
+  margin-bottom: 24px;
+  background: linear-gradient(90deg, #ff512f, #dd2476);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
+/* ───────────────────── Search bar ───────────────────── */
+.search-bar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.search-bar input {
+  width: 100%;
+  max-width: 420px;
+  padding: 12px 18px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #1c1c1c;
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.search-bar input:focus {
+  border-color: #dd2476;
+  box-shadow: 0 0 0 3px rgba(221, 36, 118, 0.25);
+}
+
+.search-bar button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 30px;
+  background: linear-gradient(90deg, #ff512f, #dd2476);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(221, 36, 118, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-bar button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(221, 36, 118, 0.55);
+}
+
+/* ───────────────────── Status text ───────────────────── */
+.song-status {
+  font-size: 1rem;
+  color: #b3b3b3;
+  margin: 20px 0;
+}
+
+.song-status.error {
+  color: #ff6b6b;
+}
+
+/* ───────────────────── Song grid ───────────────────── */
+.son {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.song-card {
+  background: #1c1c1c;
+  border-radius: 14px;
+  padding: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  text-align: left;
+}
+
+.song-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 30px rgba(221, 36, 118, 0.35);
+}
+
+.thumb-wrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.thumb-wrap img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.song-card:hover .thumb-wrap img {
+  transform: scale(1.08);
+}
+
+.play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 1.2rem;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.song-card:hover .play-overlay {
+  opacity: 1;
+}
+
+.song-card h2 {
+  margin-top: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.3;
+
+  /* Clamp long titles to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.song-card p {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #b3b3b3;
+}
+
+/* ───────────────────── Video modal ───────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: #1c1c1c;
+  border-radius: 16px;
+  padding: 20px;
+  width: 90%;
+  max-width: 720px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  animation: popIn 0.25s ease;
+  text-align: left;
+}
+
+.modal-content iframe {
+  width: 100%;
+  height: 380px;
+  border: none;
+  border-radius: 10px;
+}
+
+.modal-content h2 {
+  margin-top: 16px;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.modal-content p {
+  margin-top: 4px;
+  color: #b3b3b3;
+}
+
+.modal-close {
+  float: right;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  transition: background 0.2s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* ───────────────────── Small screens ───────────────────── */
+@media (max-width: 480px) {
+  .song {
+    margin: 16px;
+    padding: 20px 14px;
+  }
+
+  .song h1 {
+    font-size: 1.5rem;
+  }
+
+  .modal-content iframe {
+    height: 220px;
+  }
+}

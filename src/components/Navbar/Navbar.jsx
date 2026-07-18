@@ -12,6 +12,8 @@ const NAV_LINKS = [
   { label: 'TV Shows',          path: '/tvshows' },
   { label: 'Movies',            path: '/movies' },
   { label: 'New & Popular',     path: '/newpopular' },
+  { label: 'songs',             path: '/songs' },
+  
 ]
 
 const Navbar = () => {

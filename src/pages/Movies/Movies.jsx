@@ -5,7 +5,7 @@ import Footer from '../../components/Footer/Footer'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 
 /* ── TMDB API options ─────────────────────────────────── */
-const OPTIONS = {
+const API_OPTIONS = {
   method: 'GET',
   headers: {
     accept: 'application/json',
@@ -14,23 +14,28 @@ const OPTIONS = {
   },
 }
 
-/* ── Build URL for a given category + page ────────────── */
-const buildUrl = (key, page = 1) => {
-  const p = `&page=${page}`
-  switch (key) {
-    case 'popular':     return `https://api.themoviedb.org/3/movie/popular?language=en-US${p}`
-    case 'top_rated':   return `https://api.themoviedb.org/3/movie/top_rated?language=en-US${p}`
-    case 'now_playing': return `https://api.themoviedb.org/3/movie/now_playing?language=en-US${p}`
-    case 'upcoming':    return `https://api.themoviedb.org/3/movie/upcoming?language=en-US${p}`
-    case 'telugu':      return `https://api.themoviedb.org/3/discover/movie?with_original_language=te&sort_by=popularity.desc${p}`
-    case 'telugu-top':  return `https://api.themoviedb.org/3/discover/movie?with_original_language=te&sort_by=vote_average.desc&vote_count.gte=100${p}`
-    /* TV Shows */
-    case 'tv-popular':    return `https://api.themoviedb.org/3/tv/popular?language=en-US${p}`
-    case 'tv-top':        return `https://api.themoviedb.org/3/tv/top_rated?language=en-US${p}`
-    case 'tv-airing':     return `https://api.themoviedb.org/3/tv/on_the_air?language=en-US${p}`
-    case 'tv-today':      return `https://api.themoviedb.org/3/tv/airing_today?language=en-US${p}`
-    default:            return `https://api.themoviedb.org/3/movie/popular?language=en-US${p}`
-  }
+/* ── One simple lookup table: category key → TMDB endpoint ──
+   Much easier to read than a big switch statement.
+   `page` gets added onto the end of every URL automatically. */
+const CATEGORY_ENDPOINTS = {
+  popular:     'movie/popular?language=en-US',
+  top_rated:   'movie/top_rated?language=en-US',
+  now_playing: 'movie/now_playing?language=en-US',
+  upcoming:    'movie/upcoming?language=en-US',
+  telugu:      'discover/movie?with_original_language=te&sort_by=popularity.desc',
+  'telugu-top':'discover/movie?with_original_language=te&sort_by=vote_average.desc&vote_count.gte=100',
+
+  /* TV Shows */
+  'tv-popular': 'tv/popular?language=en-US',
+  'tv-top':     'tv/top_rated?language=en-US',
+  'tv-airing':  'tv/on_the_air?language=en-US',
+  'tv-today':   'tv/airing_today?language=en-US',
+}
+
+// Build the full TMDB URL for a given category + page number
+function buildUrl(categoryKey, page = 1) {
+  const endpoint = CATEGORY_ENDPOINTS[categoryKey] || CATEGORY_ENDPOINTS.popular
+  return `https://api.themoviedb.org/3/${endpoint}&page=${page}`
 }
 
 /* ── Category lists per page type ────────────────────── */
@@ -52,89 +57,110 @@ const TV_CATS = [
 
 const INITIAL_PAGES = 3   // load 3 pages (~60 items) on first render
 
+/* ── Small helper: remove movies that appear more than once ── */
+function removeDuplicates(movieList) {
+  const seenIds = new Set()
+  return movieList.filter((movie) => {
+    if (seenIds.has(movie.id)) return false
+    seenIds.add(movie.id)
+    return true
+  })
+}
+
 /* ─────────────────────────────────────────────────────── */
 
 const Movies = () => {
-  const location        = useLocation()
-  const isTVPage        = location.pathname === '/tvshows'
+  const location  = useLocation()
+  const isTVPage  = location.pathname === '/tvshows'
 
-  const CATEGORIES      = isTVPage ? TV_CATS : MOVIE_CATS
-  const pageTitle       = isTVPage ? 'Browse All TV Shows' : 'Browse All Movies'
-  const pageTagline     = isTVPage ? 'Stream top TV series & episodes' : 'Unlimited movies, blockbusters & more'
+  const CATEGORIES  = isTVPage ? TV_CATS : MOVIE_CATS
+  const pageTitle   = isTVPage ? 'Browse All TV Shows' : 'Browse All Movies'
+  const pageTagline = isTVPage ? 'Stream top TV series & episodes' : 'Unlimited movies, blockbusters & more'
 
   const [searchParams, setSearchParams] = useSearchParams()
-  const initialCat      = searchParams.get('category') || CATEGORIES[0].key
+  const initialCategory = searchParams.get('category') || CATEGORIES[0].key
 
-  const [activeCategory, setActiveCategory] = useState(initialCat)
+  const [activeCategory, setActiveCategory] = useState(initialCategory)
   const [movies, setMovies]                 = useState([])
   const [page, setPage]                     = useState(1)
   const [totalPages, setTotalPages]         = useState(1)
   const [initialLoading, setInitialLoading] = useState(true)
   const [loadingMore, setLoadingMore]       = useState(false)
   const [hoveredId, setHoveredId]           = useState(null)
-  const navigate                            = useNavigate()
+  const navigate = useNavigate()
 
   const currentCat = CATEGORIES.find(c => c.key === activeCategory) || CATEGORIES[0]
+  const hasMore    = page < totalPages
 
-  /* ── Fetch ONE page and return results ──────────────── */
-  const fetchPage = useCallback(async (catKey, pageNum) => {
-    const res  = await fetch(buildUrl(catKey, pageNum), OPTIONS)
-    const data = await res.json()
-    const items = (data.results || []).filter(
-      m => m.poster_path || m.backdrop_path
+  /* ── Fetch ONE page from TMDB and return only movies that have an image ── */
+  const fetchPage = useCallback(async (categoryKey, pageNumber) => {
+    const response = await fetch(buildUrl(categoryKey, pageNumber), API_OPTIONS)
+    const data = await response.json()
+
+    const moviesWithPosters = (data.results || []).filter(
+      (movie) => movie.poster_path || movie.backdrop_path
     )
-    return { items, totalPages: data.total_pages || 1 }
+
+    return {
+      items: moviesWithPosters,
+      totalPages: data.total_pages || 1,
+    }
   }, [])
 
-  /* ── Initial load: fetch INITIAL_PAGES pages at once ── */
+  /* ── Initial load: fetch the first few pages together ── */
   useEffect(() => {
-    setInitialLoading(true)
-    setMovies([])
-    setPage(INITIAL_PAGES)
+    async function loadFirstPages() {
+      setInitialLoading(true)
+      setMovies([])
+      setPage(INITIAL_PAGES)
 
-    const fetches = Array.from({ length: INITIAL_PAGES }, (_, i) =>
-      fetchPage(activeCategory, i + 1)
-    )
+      try {
+        // Fetch pages 1, 2, 3 (etc.) all at the same time
+        const pageNumbers = Array.from({ length: INITIAL_PAGES }, (_, i) => i + 1)
+        const pageResults = await Promise.all(
+          pageNumbers.map((pageNumber) => fetchPage(activeCategory, pageNumber))
+        )
 
-    Promise.all(fetches).then(results => {
-      const all        = results.flatMap(r => r.items)
-      const maxPages   = results[0]?.totalPages || 1
-      // Deduplicate by id
-      const unique = all.filter((m, i, arr) => arr.findIndex(x => x.id === m.id) === i)
-      setMovies(unique)
-      setTotalPages(maxPages)
+        // Combine all pages into one list and remove duplicates
+        const allMovies = pageResults.flatMap((result) => result.items)
+        setMovies(removeDuplicates(allMovies))
+        setTotalPages(pageResults[0]?.totalPages || 1)
+      } catch (error) {
+        console.error('Failed to load movies:', error)
+      }
+
       setInitialLoading(false)
-    }).catch(() => setInitialLoading(false))
+    }
+
+    loadFirstPages()
   }, [activeCategory, fetchPage])
 
-  /* ── "Load More" — fetch next page and APPEND ───────── */
+  /* ── "Load More" — fetch the next page and add it to the list ── */
   const handleLoadMore = async () => {
     if (loadingMore) return
+
     const nextPage = page + 1
     if (nextPage > totalPages) return
 
     setLoadingMore(true)
     try {
       const { items } = await fetchPage(activeCategory, nextPage)
-      setMovies(prev => {
-        const existing = new Set(prev.map(m => m.id))
-        return [...prev, ...items.filter(m => !existing.has(m.id))]
-      })
+      setMovies((previousMovies) => removeDuplicates([...previousMovies, ...items]))
       setPage(nextPage)
-    } catch (_) { /* ignore */ }
+    } catch (error) {
+      console.error('Failed to load more movies:', error)
+    }
     setLoadingMore(false)
   }
 
   /* ── Switch category ────────────────────────────────── */
-  const handleCategoryClick = (key) => {
-    if (key === activeCategory) return
-    setActiveCategory(key)
-    setSearchParams({ category: key })
+  const handleCategoryClick = (categoryKey) => {
+    if (categoryKey === activeCategory) return
+    setActiveCategory(categoryKey)
+    setSearchParams({ category: categoryKey })
   }
 
   const handleMovieClick = (id) => navigate(`/player/${id}`)
-
-  const hasMore = page < totalPages
 
   /* ─────────────────────────────────────────────────────── */
   return (
@@ -143,7 +169,6 @@ const Movies = () => {
 
       {/* ── Hero ──────────────────────────────── */}
       <div className="movies-hero">
-        {/* Back button */}
         <button className="movies-back-btn" onClick={() => navigate(-1)}>
           <span className="movies-back-arrow">←</span>
           Back
@@ -155,9 +180,7 @@ const Movies = () => {
           <p className="movies-sub">Pick a category · Click any title to watch the trailer</p>
           <div className="movies-stats">
             {!initialLoading && (
-              <span className="stat-pill">
-                🎬 {movies.length}+ titles loaded
-              </span>
+              <span className="stat-pill">🎬 {movies.length}+ titles loaded</span>
             )}
             <span className="stat-pill">Page {page} / {totalPages}</span>
           </div>
@@ -168,7 +191,7 @@ const Movies = () => {
       {/* ── Category Tabs ─────────────────────── */}
       <div className="movies-tabs-wrap">
         <div className="movies-tabs">
-          {CATEGORIES.map(cat => (
+          {CATEGORIES.map((cat) => (
             <button
               key={cat.key}
               className={`tab-btn ${activeCategory === cat.key ? 'active' : ''}`}
@@ -189,8 +212,8 @@ const Movies = () => {
           )}
         </div>
 
-        {/* Skeleton on first load */}
         {initialLoading ? (
+          /* Skeleton placeholders while the first pages load */
           <div className="movies-loading">
             {Array.from({ length: 18 }).map((_, i) => (
               <div key={i} className="skeleton-card" />
@@ -199,9 +222,10 @@ const Movies = () => {
         ) : (
           <>
             <div className="movies-grid">
-              {movies.map(movie => {
+              {movies.map((movie) => {
                 const title = movie.title || movie.name
                 const date  = movie.release_date || movie.first_air_date
+
                 return (
                   <div
                     key={movie.id}
@@ -225,13 +249,9 @@ const Movies = () => {
                     <div className="movie-meta">
                       <p className="movie-title">{title}</p>
                       <div className="movie-badges">
-                        {date && (
-                          <span className="badge year">{date.slice(0, 4)}</span>
-                        )}
+                        {date && <span className="badge year">{date.slice(0, 4)}</span>}
                         {movie.vote_average > 0 && (
-                          <span className="badge rating">
-                            ⭐ {movie.vote_average.toFixed(1)}
-                          </span>
+                          <span className="badge rating">⭐ {movie.vote_average.toFixed(1)}</span>
                         )}
                       </div>
                     </div>
@@ -239,7 +259,6 @@ const Movies = () => {
                 )
               })}
 
-              {/* Skeleton appended at end while loading more */}
               {loadingMore &&
                 Array.from({ length: 6 }).map((_, i) => (
                   <div key={`sk-${i}`} className="skeleton-card" />
@@ -263,9 +282,7 @@ const Movies = () => {
                     <>
                       <span className="lm-icon">↓</span>
                       Load More Movies
-                      <span className="lm-count">
-                        (Page {page + 1} of {totalPages})
-                      </span>
+                      <span className="lm-count">(Page {page + 1} of {totalPages})</span>
                     </>
                   )}
                 </button>
