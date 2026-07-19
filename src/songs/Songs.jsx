@@ -129,7 +129,8 @@ const Songs = () => {
             <iframe
               src={`https://www.youtube.com/embed/${playingSong.videoId}?autoplay=1`}
               title={playingSong.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              frameBorder="0"
               allowFullScreen
             ></iframe>
             <h2>{playingSong.title}</h2>
