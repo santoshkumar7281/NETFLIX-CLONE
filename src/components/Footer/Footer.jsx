@@ -10,7 +10,13 @@ const Footer = () => {
     <div className="footer">
       <div className="footer-icons">
         <img src={facebook_icon} alt="" />
-      <img src={instagram_icon} alt="" />
+       <a
+    href="https://www.instagram.com/santosh_kumar7012/"
+    target="_blank"
+    
+  >
+    <img src={instagram_icon} alt="Instagram" />
+  </a>
       <img src={twitter_icon} alt="" />
       <img src={youtube_icon} alt="" />
       

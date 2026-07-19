@@ -5,7 +5,7 @@ import "./Songs.css";
 
 
 
-const YOUTUBE_API_KEY = "AIzaSyDTc4barQulzFrrjLfVlUJJqkRNyI56E-k";
+const YOUTUBE_API_KEY = "AIzaSyDj7weRNVltsSLp8RHHD-iEs5rQQPrQ63A";
 
 // What we show the very first time the page loads, before the user searches anything
 const DEFAULT_SEARCH = "Top Telugu Songs 2026";
@@ -129,7 +129,7 @@ const Songs = () => {
             <iframe
               src={`https://www.youtube.com/embed/${playingSong.videoId}?autoplay=1`}
               title={playingSong.title}
-              allow="autoplay; encrypted-media; fullscreen"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
             ></iframe>
             <h2>{playingSong.title}</h2>
