@@ -22,17 +22,25 @@ const buildUrl = (key, page = 1) => {
       return `https://api.themoviedb.org/3/movie/popular?language=en-US${p}`
     case 'top_rated':   
       return `https://api.themoviedb.org/3/movie/top_rated?language=en-US${p}`
-    case 'now_playing': return 
-      `https://api.themoviedb.org/3/movie/now_playing?language=en-US${p}`
-    case 'upcoming':    return `https://api.themoviedb.org/3/movie/upcoming?language=en-US${p}`
-    case 'telugu':      return `https://api.themoviedb.org/3/discover/movie?with_original_language=te&sort_by=popularity.desc${p}`
-    case 'telugu-top':  return `https://api.themoviedb.org/3/discover/movie?with_original_language=te&sort_by=vote_average.desc&vote_count.gte=100${p}`
+    case 'now_playing': 
+      return `https://api.themoviedb.org/3/movie/now_playing?language=en-US${p}`
+    case 'upcoming':    
+      return `https://api.themoviedb.org/3/movie/upcoming?language=en-US${p}`
+    case 'telugu':      
+      return `https://api.themoviedb.org/3/discover/movie?with_original_language=te&sort_by=popularity.desc${p}`
+    case 'telugu-top':  
+      return `https://api.themoviedb.org/3/discover/movie?with_original_language=te&sort_by=vote_average.desc&vote_count.gte=100${p}`
     /* TV Shows */
-    case 'tv-popular':    return `https://api.themoviedb.org/3/tv/popular?language=en-US${p}`
-    case 'tv-top':        return `https://api.themoviedb.org/3/tv/top_rated?language=en-US${p}`
-    case 'tv-airing':     return `https://api.themoviedb.org/3/tv/on_the_air?language=en-US${p}`
-    case 'tv-today':      return `https://api.themoviedb.org/3/tv/airing_today?language=en-US${p}`
-    default:            return `https://api.themoviedb.org/3/movie/popular?language=en-US${p}`
+    case 'tv-popular':  
+      return `https://api.themoviedb.org/3/tv/popular?language=en-US${p}`
+    case 'tv-top':      
+      return `https://api.themoviedb.org/3/tv/top_rated?language=en-US${p}`
+    case 'tv-airing':   
+      return `https://api.themoviedb.org/3/tv/on_the_air?language=en-US${p}`
+    case 'tv-today':    
+      return `https://api.themoviedb.org/3/tv/airing_today?language=en-US${p}`
+    default:            
+      return `https://api.themoviedb.org/3/movie/popular?language=en-US${p}`
   }
 }
 
@@ -53,9 +61,7 @@ const TV_CATS = [
   { label: 'Airing Today', key: 'tv-today' },
 ]
 
-const INITIAL_PAGES = 3   // load 3 pages (~60 items) on first render
-
-/* ─────────────────────────────────────────────────────── */
+const INITIAL_PAGES = 3
 
 const Movies = () => {
   const location        = useLocation()
@@ -89,7 +95,7 @@ const Movies = () => {
     return { items, totalPages: data.total_pages || 1 }
   }, [])
 
-  /* ── Initial load: fetch INITIAL_PAGES pages at once ── */
+  /* ── Initial load ───────────────────────────────────── */
   useEffect(() => {
     setInitialLoading(true)
     setMovies([])
@@ -100,17 +106,16 @@ const Movies = () => {
     )
 
     Promise.all(fetches).then(results => {
-      const all        = results.flatMap(r => r.items)
-      const maxPages   = results[0]?.totalPages || 1
-      // Deduplicate by id
-      const unique = all.filter((m, i, arr) => arr.findIndex(x => x.id === m.id) === i)
+      const all      = results.flatMap(r => r.items)
+      const maxPages = results[0]?.totalPages || 1
+      const unique   = all.filter((m, i, arr) => arr.findIndex(x => x.id === m.id) === i)
       setMovies(unique)
       setTotalPages(maxPages)
       setInitialLoading(false)
     }).catch(() => setInitialLoading(false))
   }, [activeCategory, fetchPage])
 
-  /* ── "Load More" — fetch next page and APPEND ───────── */
+  /* ── Load More ──────────────────────────────────────── */
   const handleLoadMore = async () => {
     if (loadingMore) return
     const nextPage = page + 1
@@ -139,17 +144,19 @@ const Movies = () => {
 
   const hasMore = page < totalPages
 
-  /* ─────────────────────────────────────────────────────── */
   return (
     <div className="movies-page">
       <Navbar />
 
       {/* ── Hero ──────────────────────────────── */}
-      <div className="movies-hero">
-        {/* Back button */}
-        <button className="movies-back-btn" onClick={() => navigate(-1)}>
-          <span className="movies-back-arrow">←</span>
-          Back
+      <section className="movies-hero">
+        <button 
+          className="movies-back-btn" 
+          onClick={() => navigate(-1)}
+          aria-label="Go back to previous page"
+        >
+          <span className="movies-back-arrow" aria-hidden="true">←</span>
+          <span>Back</span>
         </button>
 
         <div className="movies-hero-content">
@@ -166,25 +173,26 @@ const Movies = () => {
           </div>
         </div>
         <div className="movies-hero-overlay" />
-      </div>
+      </section>
 
-      {/* ── Category Tabs ─────────────────────── */}
-      <div className="movies-tabs-wrap">
+      {/* ── Category Tabs Sticky Bar ──────────── */}
+      <nav className="movies-tabs-wrap" aria-label="Category Navigation">
         <div className="movies-tabs">
           {CATEGORIES.map(cat => (
             <button
               key={cat.key}
               className={`tab-btn ${activeCategory === cat.key ? 'active' : ''}`}
               onClick={() => handleCategoryClick(cat.key)}
+              aria-pressed={activeCategory === cat.key}
             >
               {cat.label}
             </button>
           ))}
         </div>
-      </div>
+      </nav>
 
-      {/* ── Grid ──────────────────────────────── */}
-      <div className="movies-grid-section">
+      {/* ── Responsive Movie Grid Section ─────── */}
+      <main className="movies-grid-section">
         <div className="grid-header-row">
           <h2 className="grid-heading">{currentCat.label}</h2>
           {!initialLoading && (
@@ -192,7 +200,6 @@ const Movies = () => {
           )}
         </div>
 
-        {/* Skeleton on first load */}
         {initialLoading ? (
           <div className="movies-loading">
             {Array.from({ length: 18 }).map((_, i) => (
@@ -203,25 +210,30 @@ const Movies = () => {
           <>
             <div className="movies-grid">
               {movies.map(movie => {
-                const title = movie.title || movie.name
+                const title = movie.title || movie.name || 'Untitled'
                 const date  = movie.release_date || movie.first_air_date
+                const posterPath = movie.poster_path || movie.backdrop_path
                 return (
-                  <div
+                  <article
                     key={movie.id}
                     className={`movie-card ${hoveredId === movie.id ? 'hovered' : ''}`}
                     onMouseEnter={() => setHoveredId(movie.id)}
                     onMouseLeave={() => setHoveredId(null)}
                     onClick={() => handleMovieClick(movie.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={e => e.key === 'Enter' && handleMovieClick(movie.id)}
+                    aria-label={`Watch ${title}`}
                   >
                     <div className="movie-poster-wrap">
                       <img
-                        src={`https://image.tmdb.org/t/p/w342/${movie.poster_path || movie.backdrop_path}`}
+                        src={`https://image.tmdb.org/t/p/w342/${posterPath}`}
                         alt={title}
                         className="movie-poster"
                         loading="lazy"
                       />
                       <div className="movie-overlay">
-                        <div className="play-circle">▶</div>
+                        <div className="play-circle" aria-hidden="true">▶</div>
                         <p className="overlay-label">Watch Trailer</p>
                       </div>
                     </div>
@@ -238,34 +250,33 @@ const Movies = () => {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </article>
                 )
               })}
 
-              {/* Skeleton appended at end while loading more */}
               {loadingMore &&
                 Array.from({ length: 6 }).map((_, i) => (
                   <div key={`sk-${i}`} className="skeleton-card" />
                 ))}
             </div>
 
-            {/* ── Load More / All Loaded button ─── */}
             <div className="load-more-wrap">
               {hasMore ? (
                 <button
                   className={`load-more-btn ${loadingMore ? 'loading' : ''}`}
                   onClick={handleLoadMore}
                   disabled={loadingMore}
+                  aria-label="Load More Movies"
                 >
                   {loadingMore ? (
                     <>
-                      <span className="lm-spinner" />
+                      <span className="lm-spinner" aria-hidden="true" />
                       Loading more…
                     </>
                   ) : (
                     <>
-                      <span className="lm-icon">↓</span>
-                      Load More Movies
+                      <span className="lm-icon" aria-hidden="true">↓</span>
+                      <span>Load More Titles</span>
                       <span className="lm-count">
                         (Page {page + 1} of {totalPages})
                       </span>
@@ -275,13 +286,13 @@ const Movies = () => {
               ) : (
                 <div className="all-loaded">
                   <span className="all-loaded-icon">✓</span>
-                  All {movies.length} titles loaded
+                  <span>All {movies.length} titles loaded</span>
                 </div>
               )}
             </div>
           </>
         )}
-      </div>
+      </main>
 
       <Footer />
     </div>

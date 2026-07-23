@@ -2,26 +2,22 @@ import React, { useState, useEffect, useRef } from 'react'
 import './Navbar.css'
 import logo from '../../assets/logo.png'
 import search_icon from '../../assets/search_icon.svg'
-import bell_icon from '../../assets/bell_icon.svg'
-import caret_icon from '../../assets/caret_icon.svg'
-import profile_img from '../../assets/profile_img.png'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 
 const NAV_LINKS = [
-  { label: 'Home',              path: '/' },
-  { label: 'TV Shows',          path: '/tvshows' },
-  { label: 'Movies',            path: '/movies' },
-  { label: 'New & Popular',     path: '/newpopular' },
-  { label: 'songs',             path: '/songs' },
-  
+  { label: 'Home',          path: '/',           icon: '🏠' },
+  { label: 'TV Shows',      path: '/tvshows',    icon: '📺' },
+  { label: 'Movies',        path: '/movies',     icon: '🎬' },
+  { label: 'New & Popular', path: '/newpopular', icon: '🔥' },
+  { label: 'Songs',         path: '/songs',      icon: '🎵' },
 ]
 
 const Navbar = () => {
-  const [searchOpen, setSearchOpen]     = useState(false)
-  const [searchQuery, setSearchQuery]   = useState('')
-  const [searchResults, setSearchResults] = useState([])
-  const [isSearching, setIsSearching]   = useState(false)
-  const [scrolled, setScrolled]         = useState(false)
+  const [searchOpen, setSearchOpen]         = useState(false)
+  const [searchQuery, setSearchQuery]       = useState('')
+  const [searchResults, setSearchResults]   = useState([])
+  const [isSearching, setIsSearching]       = useState(false)
+  const [scrolled, setScrolled]             = useState(false)
 
   const searchRef = useRef(null)
   const inputRef  = useRef(null)
@@ -36,9 +32,9 @@ const Navbar = () => {
     }
   }
 
-  // Solid background after scroll
+  // Scroll threshold check
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60)
+    const onScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -47,7 +43,7 @@ const Navbar = () => {
   const handleSearchIconClick = () => {
     setSearchOpen(prev => {
       if (!prev) {
-        setTimeout(() => inputRef.current?.focus(), 50)
+        setTimeout(() => inputRef.current?.focus(), 80)
       } else {
         setSearchQuery('')
         setSearchResults([])
@@ -82,7 +78,7 @@ const Navbar = () => {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  // Close when clicking outside
+  // Close search when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
@@ -108,67 +104,65 @@ const Navbar = () => {
   }
 
   return (
-    <nav className={`navbar ${scrolled ? 'navbar-solid' : ''}`}>
-      {/* ── LEFT ─────────────────────────────── */}
-      <div className="navbar-left">
-        <Link to="/">
-          <img src={logo} alt="Netflix" className="nav-logo" />
-        </Link>
+    <>
+      {/* ── FLOATING TOP NAVBAR (Clean: Netflix Logo on Left + Sign In on Right) ────── */}
+      <nav className={`floating-navbar ${scrolled ? 'navbar-scrolled' : ''}`} aria-label="Main Floating Top Navigation Bar">
+        <div className="navbar-pill-container">
+          
+          {/* Left: Netflix Logo + Desktop Nav Links */}
+          <div className="navbar-left">
+            <Link to="/" className="logo-link" aria-label="Netflix Home">
+              <img src={logo} alt="Netflix" className="nav-logo" />
+            </Link>
 
-        {/* Desktop links */}
-        <ul className="nav-links">
-          {NAV_LINKS.map(link => (
-            <li key={link.path}>
-              <Link
-                to={link.path}
-                className={`nav-link ${isActive(link.path) ? 'nav-link-active' : ''}`}
-              >
-                {link.label}
-                {isActive(link.path) && <span className="nav-link-dot" />}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        {/* Mobile browse dropdown */}
-        <div className="navbar-browse">
-          <p>Browse</p>
-          <img src={caret_icon} alt="" />
-          <div className="browse-dropdown">
-            {NAV_LINKS.map(link => (
-              <Link key={link.path} to={link.path} className="browse-item">
-                {link.label}
-              </Link>
-            ))}
+            <ul className="desktop-pill-links">
+              {NAV_LINKS.map(link => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className={`pill-nav-item ${isActive(link.path) ? 'active' : ''}`}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
+
+          {/* Right: Clean Sign In Pill Button */}
+          <div className="navbar-right">
+            <Link to="/login" className="join-pill-btn">
+              Sign In
+            </Link>
+          </div>
+
         </div>
-      </div>
+      </nav>
 
-      {/* ── RIGHT ────────────────────────────── */}
-      <div className="navbar-right">
-
-        {/* Search */}
-        <div className={`search-container ${searchOpen ? 'open' : ''}`} ref={searchRef}>
-          <div className="search-bar">
-            <img
-              src={search_icon}
-              alt="Search"
-              className={`icons search-icon-btn ${searchOpen ? 'active' : ''}`}
-              onClick={handleSearchIconClick}
-            />
-            <input
-              ref={inputRef}
-              type="text"
-              className="search-input"
-              placeholder="Titles, people, genres"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Escape' && handleSearchIconClick()}
-            />
+      {/* ── MOBILE FULL-SCREEN SEARCH OVERLAY (When Search is triggered from Bottom Nav) ── */}
+      {searchOpen && (
+        <div className="mobile-search-overlay" ref={searchRef}>
+          <div className="mobile-search-header">
+            <div className="mobile-search-input-wrap">
+              <img src={search_icon} alt="Search" className="mobile-search-icon" />
+              <input
+                ref={inputRef}
+                type="text"
+                className="mobile-search-input"
+                placeholder="Search movies, TV shows, genres..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+              {searchQuery && (
+                <button className="clear-search-btn" onClick={() => setSearchQuery('')}>✕</button>
+              )}
+            </div>
+            <button className="close-search-btn" onClick={() => setSearchOpen(false)}>Cancel</button>
           </div>
 
-          {searchOpen && searchQuery.trim() !== '' && (
-            <div className="search-results-dropdown">
+          {searchQuery.trim() !== '' && (
+            <div className="mobile-search-results">
               {isSearching ? (
                 <div className="search-status">
                   <div className="search-spinner" />
@@ -176,11 +170,10 @@ const Navbar = () => {
                 </div>
               ) : searchResults.length === 0 ? (
                 <div className="search-status no-results">
-                  <span>No results for "<strong>{searchQuery}</strong>"</span>
+                  <span>No titles found for "<strong>{searchQuery}</strong>"</span>
                 </div>
               ) : (
-                <>
-                  <p className="results-label">Movies</p>
+                <div className="search-results-list">
                   {searchResults.map(movie => (
                     <div
                       key={movie.id}
@@ -189,7 +182,7 @@ const Navbar = () => {
                     >
                       <img
                         src={`https://image.tmdb.org/t/p/w92/${movie.poster_path || movie.backdrop_path}`}
-                        alt={movie.title}
+                        alt={movie.title || 'Poster'}
                         className="result-poster"
                         onError={e => { e.target.style.display = 'none' }}
                       />
@@ -205,31 +198,37 @@ const Navbar = () => {
                       <span className="result-play-icon">▶</span>
                     </div>
                   ))}
-                </>
+                </div>
               )}
             </div>
           )}
         </div>
+      )}
 
-        <p className="children-text">Children</p>
-        <img src={bell_icon} alt="" className="icons" />
-
-        {/* Profile + dropdown */}
-        <div className="navbar-profile">
-          <img src={profile_img} alt="" className="profile" />
-          <img src={caret_icon} alt="" className="caret-small" />
-          <div className="dropdown">
-            <Link to="/login" className="dropdown-item">Sign In / Sign Up</Link>
-            <span className="dropdown-divider" />
-            <p className="dropdown-item">Account</p>
-            <p className="dropdown-item">Help Center</p>
-          </div>
+      {/* ── MOBILE FLOATING BOTTOM APP NAVIGATION BAR ─── */}
+      <nav className="mobile-bottom-nav" aria-label="Mobile Bottom Navigation Bar">
+        <div className="mobile-nav-pill">
+          {NAV_LINKS.map(link => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`mobile-nav-item ${isActive(link.path) ? 'active' : ''}`}
+            >
+              <span className="mobile-nav-icon">{link.icon}</span>
+              <span className="mobile-nav-label">{link.label}</span>
+            </Link>
+          ))}
+          <button 
+            className={`mobile-nav-item search-trigger ${searchOpen ? 'active' : ''}`}
+            onClick={handleSearchIconClick}
+            aria-label="Search"
+          >
+            <span className="mobile-nav-icon">🔍</span>
+            <span className="mobile-nav-label">Search</span>
+          </button>
         </div>
-
-        {/* Sign In button (visible on desktop) */}
-        <Link to="/login" className="signin-btn">Sign In</Link>
-      </div>
-    </nav>
+      </nav>
+    </>
   )
 }
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import './Player.css'
 import back_arrow_icon from '../../assets/back_arrow_icon.png'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const OPTIONS = {
   method: 'GET',
@@ -17,7 +17,6 @@ const VIDEO_PRIORITY = ['Trailer', 'Teaser', 'Clip', 'Featurette', 'Behind the S
 
 /** Pick the best YouTube video from a results array */
 const pickBestVideo = (results = []) => {
-  // Filter to YouTube only
   const ytVideos = results.filter(v => v.site === 'YouTube' && v.key)
   if (!ytVideos.length) return null
 
@@ -25,7 +24,6 @@ const pickBestVideo = (results = []) => {
     const found = ytVideos.find(v => v.type === type)
     if (found) return found
   }
-  // Fallback: just return the first YouTube video
   return ytVideos[0]
 }
 
@@ -33,9 +31,9 @@ const Player = () => {
   const { id }       = useParams()
   const navigate     = useNavigate()
   const [videoData, setVideoData]   = useState(null)
-  const [mediaInfo, setMediaInfo]   = useState(null)   // title/name of the movie or show
+  const [mediaInfo, setMediaInfo]   = useState(null)
   const [loading, setLoading]       = useState(true)
-  const [mediaType, setMediaType]   = useState('movie') // 'movie' | 'tv'
+  const [mediaType, setMediaType]   = useState('movie')
 
   useEffect(() => {
     if (!id) return
@@ -54,7 +52,6 @@ const Player = () => {
         const movieVideo = pickBestVideo(movieData.results)
 
         if (movieVideo) {
-          // Also fetch movie details for the title
           const detailRes  = await fetch(
             `https://api.themoviedb.org/3/movie/${id}?language=en-US`,
             OPTIONS
@@ -67,7 +64,7 @@ const Player = () => {
           return
         }
 
-        /* ── 2. No movie video → try TV endpoint ───────── */
+        /* ── 2. Try TV endpoint ───────────────────────── */
         const tvRes  = await fetch(
           `https://api.themoviedb.org/3/tv/${id}/videos?language=en-US`,
           OPTIONS
@@ -88,7 +85,7 @@ const Player = () => {
           return
         }
 
-        /* ── 3. Try without language filter (broader search) */
+        /* ── 3. Try broader search ───────────────────── */
         const broadRes  = await fetch(
           `https://api.themoviedb.org/3/movie/${id}/videos`,
           OPTIONS
@@ -102,7 +99,6 @@ const Player = () => {
           setVideoData(null)
         }
 
-        // Still get the title
         const detailRes = await fetch(
           `https://api.themoviedb.org/3/movie/${id}?language=en-US`,
           OPTIONS
@@ -119,8 +115,6 @@ const Player = () => {
     tryFetch()
   }, [id])
 
-  
-
   const title    = mediaInfo?.title || mediaInfo?.name || 'Unknown Title'
   const year     = (mediaInfo?.release_date || mediaInfo?.first_air_date || '').slice(0, 4)
   const rating   = mediaInfo?.vote_average?.toFixed(1)
@@ -128,29 +122,35 @@ const Player = () => {
 
   return (
     <div className="player">
-
       {/* ── Back Button ─────────────────────── */}
-      <button className="player-back-btn" onClick={() => navigate(-1)} title="Go back">
-        <img src={back_arrow_icon} alt="Back" />
+      <button 
+        className="player-back-btn" 
+        onClick={() => navigate(-1)} 
+        title="Go back"
+        aria-label="Go back to previous page"
+      >
+        <img src={back_arrow_icon} alt="" aria-hidden="true" />
         <span>Back</span>
       </button>
 
       {/* ── Video Area ──────────────────────── */}
       {loading ? (
         <div className="player-loading">
-          <div className="player-spinner" />
+          <div className="player-spinner" aria-hidden="true" />
           <p>Finding the best trailer…</p>
         </div>
       ) : videoData && videoData.key ? (
-        <iframe
-          src={`https://www.youtube.com/embed/${videoData.key}?autoplay=1&rel=0`}
-          title={videoData.name || 'Trailer'}
-          allowFullScreen
-          allow="autoplay; encrypted-media; picture-in-picture"
-        />
+        <div className="player-iframe-wrap">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoData.key}?autoplay=1&rel=0`}
+            title={videoData.name || `${title} Trailer`}
+            allowFullScreen
+            allow="autoplay; encrypted-media; picture-in-picture"
+          />
+        </div>
       ) : (
         <div className="no-video">
-          <div className="no-video-icon">🎬</div>
+          <div className="no-video-icon" aria-hidden="true">🎬</div>
           <h3>Trailer Not Available</h3>
           <p>No official trailer was found for this title on YouTube.</p>
           <button className="no-video-back" onClick={() => navigate(-1)}>
@@ -176,9 +176,19 @@ const Player = () => {
           {overview && <p className="video-overview">{overview}</p>}
         </div>
       )}
-      <iframe class="rumble" width="640" height="360" src="https://rumble.com/embed/v6nvxxe/?pub=4" frameborder="0" allowfullscreen></iframe>
+      
+      <div className="rumble-wrap">
+        <iframe 
+          className="rumble" 
+          width="640" 
+          height="360" 
+          src="https://rumble.com/embed/v6nvxxe/?pub=4" 
+          frameBorder="0" 
+          allowFullScreen
+          title="Rumble Video Stream"
+        />
+      </div>
     </div>
-    
   )
 }
 

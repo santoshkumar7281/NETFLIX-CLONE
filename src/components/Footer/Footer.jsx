@@ -5,39 +5,49 @@ import twitter_icon from '../../assets/twitter_icon.png'
 import instagram_icon from '../../assets/instagram_icon.png'
 import facebook_icon from '../../assets/facebook_icon.png'
 
+const FOOTER_LINKS = [
+  'Audio Description',
+  'Help Centre',
+  'Gift Cards',
+  'Media Centre',
+  'Investor Relations',
+  'Jobs',
+  'Terms of Use',
+  'Privacy',
+  'Legal Notices',
+  'Cookie Preferences',
+  'Corporate Information',
+  'Contact Us',
+]
+
 const Footer = () => {
   return (
-    <div className="footer">
+    <footer className="footer">
       <div className="footer-icons">
-        <img src={facebook_icon} alt="" />
-       <a
-    href="https://www.instagram.com/santosh_kumar7012/"
-    target="_blank"
-    
-  >
-    <img src={instagram_icon} alt="Instagram" />
-  </a>
-      <img src={twitter_icon} alt="" />
-      <img src={youtube_icon} alt="" />
-      
+        <a href="https://www.facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook">
+          <img src={facebook_icon} alt="Facebook" />
+        </a>
+        <a href="https://www.instagram.com/santosh_kumar7012/" target="_blank" rel="noreferrer" aria-label="Instagram">
+          <img src={instagram_icon} alt="Instagram" />
+        </a>
+        <a href="https://www.twitter.com" target="_blank" rel="noreferrer" aria-label="Twitter">
+          <img src={twitter_icon} alt="Twitter" />
+        </a>
+        <a href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube">
+          <img src={youtube_icon} alt="YouTube" />
+        </a>
       </div>
-      <ul>
-        <li>Audio Description</li>
-        <li>Help Centre</li>
-        <li>Gift cards</li>
-        <li>Media Centre</li>
-        <li>Investor Relations</li>
-        <li>Jobs</li>
-        <li>terms of use</li>
-        <li>privacy</li>
-        <li>legal Notices</li>
-        <li>Cookie Preferences</li>
-        <li>Corporate Information</li>
-        <li>Contact us</li>
-      
+
+      <ul className="footer-links-grid">
+        {FOOTER_LINKS.map((link, idx) => (
+          <li key={idx}>
+            <span role="button" tabIndex={0}>{link}</span>
+          </li>
+        ))}
       </ul>
-      <p className="copyright-text">@copyright text</p>
-    </div>
+
+      <p className="copyright-text">&copy; 1997-2026 Netflix Clone, Inc.</p>
+    </footer>
   )
 }
 
