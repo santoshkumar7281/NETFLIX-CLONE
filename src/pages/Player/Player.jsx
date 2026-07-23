@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import './Player.css'
 import back_arrow_icon from '../../assets/back_arrow_icon.png'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -34,6 +34,37 @@ const Player = () => {
   const [mediaInfo, setMediaInfo]   = useState(null)
   const [loading, setLoading]       = useState(true)
   const [mediaType, setMediaType]   = useState('movie')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const playerWrapRef = useRef(null)
+
+  useEffect(() => {
+    const handleFSChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFSChange)
+    document.addEventListener('webkitfullscreenchange', handleFSChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFSChange)
+      document.removeEventListener('webkitfullscreenchange', handleFSChange)
+    }
+  }, [])
+
+  const toggleFullscreen = () => {
+    if (!playerWrapRef.current) return
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (playerWrapRef.current.requestFullscreen) {
+        playerWrapRef.current.requestFullscreen().catch(() => {})
+      } else if (playerWrapRef.current.webkitRequestFullscreen) {
+        playerWrapRef.current.webkitRequestFullscreen()
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {})
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen()
+      }
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -140,13 +171,21 @@ const Player = () => {
           <p>Finding the best trailer…</p>
         </div>
       ) : videoData && videoData.key ? (
-        <div className="player-iframe-wrap">
+        <div className="player-iframe-wrap" ref={playerWrapRef}>
           <iframe
-            src={`https://www.youtube.com/embed/${videoData.key}?autoplay=1&rel=0`}
+            src={`https://www.youtube.com/embed/${videoData.key}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=0&controls=1&disablekb=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
             title={videoData.name || `${title} Trailer`}
             allowFullScreen
-            allow="autoplay; encrypted-media; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
           />
+          <button 
+            className="player-fs-btn" 
+            onClick={toggleFullscreen}
+            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            aria-label="Toggle Fullscreen"
+          >
+            {isFullscreen ? '🗗 Exit Full Screen' : '⛶ Full Screen'}
+          </button>
         </div>
       ) : (
         <div className="no-video">
@@ -176,8 +215,6 @@ const Player = () => {
           {overview && <p className="video-overview">{overview}</p>}
         </div>
       )}
-      
-     
     </div>
   )
 }
