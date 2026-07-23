@@ -177,17 +177,7 @@ const Player = () => {
         </div>
       )}
       
-      <div className="rumble-wrap">
-        <iframe 
-          className="rumble" 
-          width="640" 
-          height="360" 
-          src="https://rumble.com/embed/v6nvxxe/?pub=4" 
-          frameBorder="0" 
-          allowFullScreen
-          title="Rumble Video Stream"
-        />
-      </div>
+     
     </div>
   )
 }
