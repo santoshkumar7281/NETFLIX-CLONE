@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import './Login.css'
-import logo from '../../assets/logo.png'
+import skm from '../../assets/skm.png'
+
 import { useNavigate } from 'react-router-dom'
 
 const Login = () => {
@@ -26,7 +27,7 @@ const Login = () => {
       {/* Top logo header */}
       <header className="login-nav">
         <img
-          src={logo}
+          src={skm}
           className="login-logo"
           alt="Netflix"
           onClick={() => navigate('/')}

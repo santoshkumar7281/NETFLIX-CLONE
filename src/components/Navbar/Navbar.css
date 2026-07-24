@@ -20,12 +20,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 16px 8px 20px;
-  background: rgba(18, 18, 18, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+ 
+ 
+  
   border: none; /* Border Removed */
   border-radius: 9999px; /* Floating pill shape */
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+ 
   transition: all 0.35s ease;
 }
 
@@ -47,11 +47,11 @@
   align-items: center;
 }
 
-.nav-logo {
-  width: 84px;
-  height: auto;
-  display: block;
-  transition: transform 0.2s ease;
+.nav-logo{
+    width: clamp(70px, 8vw, 110px);
+    height: auto;
+    display: block;
+    object-fit: contain;
 }
 
 .logo-link:hover .nav-logo {

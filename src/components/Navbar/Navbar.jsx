@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import './Navbar.css'
 import logo from '../../assets/logo.png'
+import skm from '../../assets/skm.png'
 import search_icon from '../../assets/search_icon.svg'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 
@@ -112,7 +113,7 @@ const Navbar = () => {
           {/* Left: Netflix Logo + Desktop Nav Links */}
           <div className="navbar-left">
             <Link to="/" className="logo-link" aria-label="Netflix Home">
-              <img src={logo} alt="Netflix" className="nav-logo" />
+              <img src={skm} alt="Netflix" className="nav-logo" />
             </Link>
 
             <ul className="desktop-pill-links">
